@@ -24,9 +24,9 @@ import recommonmark.parser
 
 # -- Project information -----------------------------------------------------
 
-project = 'Bento'
-copyright = '2021, Bento Contributors'
-author = 'Bento Contributors'
+project = 'Graphene'
+copyright = '2019, Graphene Contributors'
+author = 'Graphene Contributors'
 
 # The short X.Y version
 version = ''
@@ -87,8 +87,16 @@ rst_prolog = '''
    :trim:
 '''
 
+breathe_projects = {p: '_build/doxygen-{}/xml'.format(p)
+    for p in ('libos', 'pal', 'pal-linux', 'pal-linux-sgx')}
+
+def generate_doxygen(app):
+    for p in breathe_projects:
+        subprocess.check_call(['doxygen', 'Doxyfile-{}'.format(p)])
+
 def setup(app):
-    app.add_stylesheet('css/bento.css')
+    app.add_stylesheet('css/graphene.css')
+    app.connect('builder-inited', generate_doxygen)
 
 breathe_domain_by_extension = {
     'h': 'c',
@@ -114,11 +122,41 @@ html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'logo_only': True,
 }
-# html_logo = '.svg'
+html_logo = 'graphene_logo.svg'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# Custom sidebar templates, must be a dictionary that maps document names
+# to template names.
+#
+# The default sidebars (for documents that don't match any pattern) are
+# defined by theme itself.  Builtin themes are using these templates by
+# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
+# 'searchbox.html']``.
+#
+# html_sidebars = {}
 
+
+# -- Options for manual page output ------------------------------------------
+
+# One entry per manual page. List of tuples
+# (source start file, name, description, authors, manual section).
+man_pages = [
+    ('manpages/graphene-manifest', 'graphene-manifest', 'Graphene manifest preprocessor', [author], 1),
+    ('manpages/pal_loader', 'pal_loader', 'FIXME Loader', [author], 1),
+    ('manpages/gsc', 'gsc', 'Graphene Shielded Containers', [author], 1),
+    ('manpages/is_sgx_available', 'is_sgx_available', 'Check SGX compatibility', [author], 1),
+    ('manpages/quote_dump', 'quote_dump', 'Display SGX quote', [author], 1),
+    ('manpages/ias_request', 'ias_request', 'Submit Intel Attestation Service request', [author], 1),
+    ('manpages/verify_ias_report', 'verify_ias_report', 'Verify Intel Attestation Service report', [author], 1),
+]
+
+# barf if a page is not included
+assert (collections.Counter(str(p.with_suffix(''))
+        for p in pathlib.Path().glob('manpages/*.rst')
+        if not p.stem == 'index')
+    == collections.Counter(source
+        for source, *_ in man_pages))
